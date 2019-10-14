@@ -1,73 +1,77 @@
-sudo apt update
-sudo apt install -y liblz4-dev openjdk-8-jdk android-tools-adb bc bison build-essential curl flex g++-multilib gcc-multilib gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libesd0-dev liblz4-tool libncurses5-dev libsdl1.2-dev libssl-dev libwxgtk3.0-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc yasm zip zlib1g-dev ccache
+#!/bin/bash
+source config.sh
+export SUBARCH="${ARCH}"
 
-# Export
-export TELEGRAM_TOKEN
-export TELEGRAM_CHAT
-export ARCH=arm
-export SUBARCH=arm
-export PATH=/usr/lib/ccache:$PATH
-export KBUILD_BUILD_USER=wulan17
-export KBUILD_BUILD_HOST=Github
-export branch=pie
-export device=cactus
-export kernel_repo=https://github.com/wulan17/android_kernel_xiaomi_cactus.git
-export tc_repo=https://github.com/wulan17/prebuilts_gcc_linux-x86_arm-linux-androideabi-4.9.git
-export tc_name=arm-linux-androideabi
-export tc_v=4.9
-export zip_name="kernel-"$device"-"$(env TZ='Asia/Jakarta' date +%Y%m%d)""
-export KERNEL_DIR=$(pwd)
-export KERN_IMG=$KERNEL_DIR/kernel/out/arch/$ARCH/boot/zImage-dtb
-export ZIP_DIR=$KERNEL_DIR/AnyKernel
-export CONFIG_DIR=$KERNEL_DIR/kernel/arch/$ARCH/configs
-export CORES=$(grep -c ^processor /proc/cpuinfo)
-export THREAD="-j$CORES"
-export CROSS_COMPILE+="ccache "
-export CROSS_COMPILE+="$KERNEL_DIR/$tc_name-$tc_v/bin/$tc_name-"
-export CROSS_COMPILE
-
-# Main Environment
-chmod a+x $KERNEL_DIR/telegram
-SYNC_START=$(date +"%s")
-$KERNEL_DIR/telegram -M "Sync Started"
-cd $KERNEL_DIR && git clone -b $branch $kernel_repo --depth 1 kernel
-cd $KERNEL_DIR && git clone $tc_repo $tc_name-$tc_v
-chmod a+x $KERNEL_DIR/$tc_name-$tc_v/bin/*
-chmod a+x $KERNEL_DIR/$tc_name-$tc_v/libexec/gcc/$tc_name/*/*
-chmod a+x $KERNEL_DIR/$tc_name-$tc_v/libexec/gcc/$tc_name/*/plugin/*
-SYNC_END=$(date +"%s")
-SYNC_DIFF=$((SYNC_END - SYNC_START))
-$KERNEL_DIR/telegram -M "Sync completed successfully in $((SYNC_DIFF / 60)) minute(s) and $((SYNC_DIFF % 60)) seconds"
+if [ "${ARCH}" == "arm" ]; then
+    export kernel_toolchain="arm-linux-androideabi-"
+    export kernel_clang_triple="arm-linux-gnu-"
+elif [ "${ARCH}" == "arm64" ]; then
+    export kernel_toolchain="aarch64-linux-android-"
+    export kernel_clang_triple="aarch64-linux-gnu-"
+fi
+if [ "${clang}" == "false" ]; then
+    export CROSS_COMPILE="$(pwd)/gcc/bin/${kernel_toolchain}"
+elif [ "${clang}" == "true" ]; then
+    PATH="${PATH}:$(pwd)/clang/bin:$(pwd)/gcc/bin"
+fi
+if [ "${name}" == "" ]; then
+    export name="Generic ${device} kernel"
+fi
 
 BUILD_START=$(date +"%s")
-cd $KERNEL_DIR/kernel
-$KERNEL_DIR/telegram -M "Build Start
-Dev : ""$KBUILD_BUILD_USER""
-Product : Kernel
-Device : #""$device""
-Branch : ""$branch""
-Host : ""$KBUILD_BUILD_HOST""
-Compiler : 
-""$(gcc --version)""
-Compiler : 
-""$(${CROSS_COMPILE}gcc --version | head -n 1)""
-Date : ""$(env TZ=Asia/Jakarta date)"""
-make  O=out $(echo $device)_defconfig $THREAD
-make -j4 O=out
-
-cp $KERN_IMG $ZIP_DIR
-cd $ZIP_DIR
-mv zImage-dtb zImage
-BUILD_END=$(date +"%s")
-BUILD_DIFF=$((BUILD_END - BUILD_START))
-zip -r $zip_name.zip ./*
-
-curl -v -F "chat_id=$TELEGRAM_CHAT" -F document=@$ZIP_DIR/$zip_name.zip -F "parse_mode=html" -F caption="Build completed successfully in $((BUILD_DIFF / 60)) minute(s) and $((BUILD_DIFF % 60)) seconds
-Dev : ""$KBUILD_BUILD_USER""
-Product : Kernel
-Device : #""$device""
-Branch : ""$branch""
-Host : ""$KBUILD_BUILD_HOST""
-Compiler : ""$(gcc --version)""
-Compiler : ""$(${CROSS_COMPILE}gcc --version | head -n 1)""
-Date : ""$(env TZ=Asia/Jakarta date)""" https://api.telegram.org/bot$TELEGRAM_TOKEN/sendDocument
+cd kernel
+telegram -M "Build started for ${device}"
+if [ "${clang}" == "true" ]; then
+    make O=out ARCH="${ARCH}" "${defconfig}"
+    make -j$(nproc --all) O=out ARCH="${ARCH}" CC=clang CLANG_TRIPLE="${kernel_clang_triple}" CROSS_COMPILE="${kernel_toolchain}"
+else
+    mkdir -p out
+    make O=out "${defconfig}"
+    make O=out -j$(nproc --all)
+fi
+cd ..
+function pack_zip () {
+    export zip_name="kernel-$(date +%Y%m%d-%H%M)-${device}.zip"
+    cd AnyKernel
+    if [ "${device_is_ab}" == "true" ]; then
+        sed -i 's|is_slot_device=0|is_slot_device=1|g' anykernel.sh
+    fi
+    sed -i "s|device_name1=|device_name1=${device}|g" anykernel.sh
+    sed -i "s|kernel_string=|kernel_string=${name}|g" anykernel.sh
+    zip -r9 "${zip_name}" * "${zip_name}"
+    cd ..
+}
+if [ "${ARCH}" == "arm" ]; then
+    if [ -f kernel/out/arch/arm/boot/Image ]; then
+        if [ -f kernel/out/arch/arm/boot/zImage-dtb ]; then
+            cp kernel/out/arch/arm/boot/zImage-dtb AnyKernel/
+        else
+            cp kernel/out/arch/arm/boot/zImage AnyKernel/
+        fi
+        pack_zip
+        BUILD_END=$(date +"%s")
+        BUILD_DIFF=$((BUILD_END - BUILD_START))
+        curl -v -F "chat_id=$TELEGRAM_CHAT" -F document="@AnyKernel/${zip_name}" -F "parse_mode=html" -F caption="Build completed successfully in $((BUILD_DIFF / 60)) minute(s) and $((BUILD_DIFF % 60)) seconds" "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendDocument"
+    else
+        BUILD_END=$(date +"%s")
+        BUILD_DIFF=$((BUILD_END - BUILD_START))
+        telegram -M "Build failed in $((BUILD_DIFF / 60)) minute(s) and $((BUILD_DIFF % 60)) seconds"
+    fi
+fi
+if [ "${ARCH}" == "arm64" ]; then
+    if [ -f kernel/out/arch/arm64/boot/Image ]; then
+        if [ -f kernel/out/arch/arm64/boot/Image.gz-dtb ]; then
+            cp kernel/out/arch/arm64/boot/Image.gz-dtb AnyKernel/
+        else
+            cp kernel/out/arch/arm64/boot/Image.gz AnyKernel/
+        fi
+        pack_zip
+        BUILD_END=$(date +"%s")
+        BUILD_DIFF=$((BUILD_END - BUILD_START))
+        curl -v -F "chat_id=$TELEGRAM_CHAT" -F document="@AnyKernel/${zip_name}" -F "parse_mode=html" -F caption="Build completed successfully in $((BUILD_DIFF / 60)) minute(s) and $((BUILD_DIFF % 60)) seconds" "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendDocument"
+    else
+        BUILD_END=$(date +"%s")
+        BUILD_DIFF=$((BUILD_END - BUILD_START))
+        telegram -M "Build failed in $((BUILD_DIFF / 60)) minute(s) and $((BUILD_DIFF % 60)) seconds"
+    fi
+fi
