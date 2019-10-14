@@ -1,0 +1,26 @@
+name: Automatic kernel build for montana
+
+on: push
+
+jobs:
+  build:
+    name: Automatic kernel build for montana
+    runs-on: ubuntu-16.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install dependencies
+      run: |
+        ./setup.sh
+      shell: bash
+    - name: Sync the source
+      run: |
+        ./sync.sh
+      env:
+        TELEGRAM_CHAT: ${{ secrets.TELEGRAM_CHAT }} 
+        TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }} 
+    - name: Build the kernel
+      run: |
+        ./build.sh
+      env:
+        TELEGRAM_CHAT: ${{ secrets.TELEGRAM_CHAT }} 
+        TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }} 
