@@ -12,7 +12,7 @@ fi
 if [ "${clang}" == "false" ]; then
     export CROSS_COMPILE="$(pwd)/gcc/bin/${kernel_toolchain}"
 elif [ "${clang}" == "true" ]; then
-    PATH="${PATH}:$(pwd)/clang/bin:$(pwd)/gcc/bin"
+    PATH="${PATH}:$(pwd)/clang/clang-r365631/bin:$(pwd)/gcc/bin"
 fi
 if [ "${name}" == "" ]; then
     export name="Generic ${device} kernel"
