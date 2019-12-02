@@ -14,7 +14,7 @@ if [ "${clang}" == "false" ]; then
 elif [ "${clang}" == "true" ]; then
     PATH="${PATH}:$(pwd)/clang/clang-r365631/bin:$(pwd)/gcc/bin"
 fi
-if [ "${name}" == "" ]; then
+if [ -z "${name}" ]; then
     export name="Generic ${device} kernel"
 fi
 
