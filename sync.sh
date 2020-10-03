@@ -8,9 +8,9 @@ if [ "${clang}" == "true" ]; then
     git clone git://github.com/PixelExperience/prebuilts_clang_host_linux-x86 --depth 1 -b pie clang
 fi
 if [ "${ARCH}" == "arm" ]; then
-    git clone git://github.com/JarlPenguin/prebuilts_gcc_linux-x86_arm_arm-linux-androideabi-4.9 --depth 1 gcc
+    git clone git://github.com/LineageOS/android_prebuilts_gcc_linux-x86_arm_arm-linux-androideabi-4.9 --depth 1 gcc
 elif [ "${ARCH}" == "arm64" ]; then
-    git clone git://github.com/JarlPenguin/prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9 --depth 1 gcc
+    git clone git://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9 --depth 1 gcc
 fi
 SYNC_END=$(date +"%s")
 SYNC_DIFF=$((SYNC_END - SYNC_START))
