@@ -58,6 +58,7 @@ if [ "${ARCH}" == "arm" ]; then
         BUILD_DIFF=$((BUILD_END - BUILD_START))
         telegram -M "Build failed in $((BUILD_DIFF / 60)) minute(s) and $((BUILD_DIFF % 60)) seconds"
         curl --data parse_mode=HTML --data chat_id=$TELEGRAM_CHAT --data sticker=CAADBQADGgEAAixuhBPbSa3YLUZ8DBYE --request POST https://api.telegram.org/bot$TELEGRAM_TOKEN/sendSticker
+        exit 1
     fi
 fi
 if [ "${ARCH}" == "arm64" ]; then
@@ -77,5 +78,6 @@ if [ "${ARCH}" == "arm64" ]; then
         BUILD_DIFF=$((BUILD_END - BUILD_START))
         telegram -M "Build failed in $((BUILD_DIFF / 60)) minute(s) and $((BUILD_DIFF % 60)) seconds"
         curl --data parse_mode=HTML --data chat_id=$TELEGRAM_CHAT --data sticker=CAADBQADGgEAAixuhBPbSa3YLUZ8DBYE --request POST https://api.telegram.org/bot$TELEGRAM_TOKEN/sendSticker
+        exit 1
     fi
 fi

@@ -19,4 +19,5 @@ if [ -d "kernel" ] && [ -d "gcc" ] && [ -d "AnyKernel" ]; then
 else
     telegram -M "Sync failed in $((SYNC_DIFF / 60)) minute(s) and $((SYNC_DIFF % 60)) seconds"
     curl --data parse_mode=HTML --data chat_id=$TELEGRAM_CHAT --data sticker=CAADBQADGgEAAixuhBPbSa3YLUZ8DBYE --request POST https://api.telegram.org/bot$TELEGRAM_TOKEN/sendSticker
+    exit 1
 fi
