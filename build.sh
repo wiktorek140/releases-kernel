@@ -11,8 +11,17 @@ elif [ "${ARCH}" == "arm64" ]; then
 fi
 if [ "${clang}" == "false" ]; then
     export CROSS_COMPILE="$(pwd)/gcc/bin/${kernel_toolchain}"
+    if [ "${ARCH}" == "arm64" ]; then
+        export CROSS_COMPILE_ARM32="$(pwd)/gcc32/bin/arm-linux-androideabi-"
+    fi
 elif [ "${clang}" == "true" ]; then
-    PATH="${PATH}:$(pwd)/clang/clang-r365631/bin:$(pwd)/gcc/bin"
+    export CROSS_COMPILE="$(pwd)/gcc/bin/${kernel_toolchain}"
+    if [ "${ARCH}" == "arm64" ]; then
+        export PATH="${PATH}:$(pwd)/clang/clang-r365631/bin:$(pwd)/gcc/bin:$(pwd)/gcc32/bin"
+        export CROSS_COMPILE_ARM32="$(pwd)/gcc32/bin/arm-linux-androideabi-"
+    else
+        export PATH="${PATH}:$(pwd)/clang/clang-r365631/bin:$(pwd)/gcc/bin"
+    fi
 fi
 if [ -z "${name}" ]; then
     export name="Generic ${device} kernel"
@@ -22,8 +31,8 @@ BUILD_START=$(date +"%s")
 cd kernel
 telegram -M "Build started for ${device}"
 if [ "${clang}" == "true" ]; then
-    make O=out ARCH="${ARCH}" "${defconfig}"
-    make -j$(nproc --all) O=out ARCH="${ARCH}" CC=clang CLANG_TRIPLE="${kernel_clang_triple}" CROSS_COMPILE="${kernel_toolchain}"
+    make O=out "${defconfig}"
+    make -j$(nproc --all) O=out CC=clang CLANG_TRIPLE="${kernel_clang_triple}"
 else
     mkdir -p out
     make O=out "${defconfig}"
