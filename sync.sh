@@ -5,7 +5,7 @@ telegram -M "Sync started for [${name}](${kernel})"
 git clone "${kernel}" --depth 1 -b "${branch}" kernel
 git clone git://github.com/JarlPenguin/AnyKernel3 --depth 1 AnyKernel
 if [ "${clang}" == "true" ]; then
-    git clone git://github.com/PixelExperience/prebuilts_clang_host_linux-x86 --depth 1 -b pie clang
+    git clone https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 --depth 1 -b android-11.0.0_r8 clang
 fi
 if [ "${ARCH}" == "arm" ]; then
     git clone git://github.com/LineageOS/android_prebuilts_gcc_linux-x86_arm_arm-linux-androideabi-4.9 --depth 1 gcc

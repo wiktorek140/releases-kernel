@@ -17,7 +17,7 @@ if [ "${clang}" == "false" ]; then
 elif [ "${clang}" == "true" ]; then
     export CROSS_COMPILE="$(pwd)/gcc/bin/${kernel_toolchain}"
     if [ "${ARCH}" == "arm64" ]; then
-        export PATH="${PATH}:$(pwd)/clang/clang-r365631/bin:$(pwd)/gcc/bin:$(pwd)/gcc32/bin"
+        export PATH="${PATH}:$(pwd)/clang/clang-r365631c/bin:$(pwd)/gcc/bin:$(pwd)/gcc32/bin"
         export CROSS_COMPILE_ARM32="$(pwd)/gcc32/bin/arm-linux-androideabi-"
     else
         export PATH="${PATH}:$(pwd)/clang/clang-r365631/bin:$(pwd)/gcc/bin"
