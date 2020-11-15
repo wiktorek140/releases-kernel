@@ -1,4 +1,4 @@
-name: Automatic kernel build for montana - testing
+name: Automatic kernel build for montana
 
 on: push
 
