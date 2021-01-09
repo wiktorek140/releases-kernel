@@ -2,7 +2,7 @@
 source config.sh
 SYNC_START=$(date +"%s")
 telegram -M "Sync started for [${name}](${kernel})"
-git clone "${kernel}" --depth 1 -b "${branch}" kernel
+git clone "${kernel}" -b "${branch}" kernel
 git clone git://github.com/JarlPenguin/AnyKernel3 --depth 1 AnyKernel
 if [ "${clang}" == "true" ]; then
     git clone https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 --depth 1 -b android-11.0.0_r8 clang
@@ -14,6 +14,7 @@ elif [ "${ARCH}" == "arm64" ]; then
     git clone git://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9 --depth 1 gcc
 fi
 cd kernel
+git fetch origin
 git cherry-pick "${commits}"
 cd ..
 
