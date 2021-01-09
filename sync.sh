@@ -14,7 +14,7 @@ elif [ "${ARCH}" == "arm64" ]; then
     git clone git://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9 --depth 1 gcc
 fi
 cd ./kernel/
-git config --global user.email "wiktorek140@tlen.pl
+git config --global user.email "wiktorek140@tlen.pl"
 git config --global user.name "wiktor"
 
 git fetch
