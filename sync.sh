@@ -13,10 +13,12 @@ elif [ "${ARCH}" == "arm64" ]; then
     git clone git://github.com/LineageOS/android_prebuilts_gcc_linux-x86_arm_arm-linux-androideabi-4.9 --depth 1 gcc32
     git clone git://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9 --depth 1 gcc
 fi
-cd kernel
-git fetch origin
-git cherry-pick "${commits}"
-cd ..
+cd ./kernel/
+git fetch
+git cherry-pick 4dcb1f152f2fec75500f81154cbfa8a2df271b4c
+git cherry-pick ac069951b776f3aed88695a674cfe0a4f572f270
+git cherry-pick 6d9925d839b24a3ef8ad1fdeacc381e2e9e51831
+cd ./..
 
 SYNC_END=$(date +"%s")
 SYNC_DIFF=$((SYNC_END - SYNC_START))
